@@ -34,13 +34,14 @@ def check_serials(mydomain):
             for ip in ip4_query:
                 ip_list += [ip.address]
         except:
-            continue
+            pass
+        ns_dict.update({ns: frozenset(ip_list)})
         try:
             ip6_query = dns.resolver.query(ns, 'AAAA')
             for ip in ip6_query:
                 ip_list += [ip.address]
         except:
-            continue
+            pass
         ns_dict.update({ns: frozenset(ip_list)})
     request = dns.message.make_query(mydomain, dns.rdatatype.SOA)
     serial_dict = {}
