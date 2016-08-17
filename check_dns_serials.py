@@ -20,6 +20,8 @@ import dns.resolver
 import dns.message
 import dns.rdatatype
 import sys
+import logging as log
+import argparse
 
 
 def check_serials(mydomain):
@@ -50,6 +52,7 @@ def check_serials(mydomain):
         response = dns.query.udp(request, name_server)
         serial_dict.update({key: response.answer[0][0].serial})
     serial_values = list(serial_dict.values())
+    log.info('Serials returned for domain {}: \n'.format(mydomain)+str(serial_dict))
     if len(set(serial_values)) > 1:
         return(serial_dict)
     else:
@@ -57,13 +60,22 @@ def check_serials(mydomain):
 
 
 def main():
-    args = sys.argv
-    args.pop(0)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('domains', metavar='d', type=str, nargs='+',
+                        help='domains which to check')
+    parser.add_argument('--verbose',action='store_true')
+    args = parser.parse_args()
     errors = {}
-    for domain in args:
+    if args.verbose:
+        log.basicConfig(format="%(levelname)s: %(message)s", level=log.DEBUG)
+    else:
+        log.basicConfig(format="%(levelname)s: %(message)s")
+    for domain in args.domains:
         result = check_serials(domain)
         if result != 0:
             errors.update({domain: result})
+        else:
+            print('Serials in domain: {} are OK'.format(domain))
     if errors :
         error_text = 'Serials in domain: {} are unequal. Returned serials from NS: {}\n'
         full_text = ''
